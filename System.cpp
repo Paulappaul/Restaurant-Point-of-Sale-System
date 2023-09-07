@@ -5,8 +5,11 @@ System::System()
 {
 	//check there are any settings
 	if (System::retrieveSettings())
+	{
 		//ask the user to login
-		posMain(System::login());
+		User* loggedInUser = System::login(); // Receive the user pointer
+		posMain(loggedInUser); // Pass the user pointer to posMain
+	}
 	//If there are no settings
 	else
 		System::resetSettings(); // we load a blank session
@@ -14,14 +17,73 @@ System::System()
 
 }
 
-User& System::login()
+struct LoginS
 {
-	std::cout << "debug login " << std::endl;
-	User debugUser; 
+    Fl_Input* userName;
+    Fl_Input* passWord;
+    System* systemCopy;
+    User* userReturn; 
+	bool flag = false;
+};
 
-	return debugUser;
+User* System::login()
+{
+	User* testUser = new User();
+	testUser->setUsername("Paul");
+	testUser->setPassword("Paul");
+	this->setNewUser(testUser);
 
+	std::shared_ptr<LoginS> login = std::make_shared<LoginS>();
+
+    std::cout << "debug login " << std::endl;
+	std::cout << "Stage 1: " << &testUser << std::endl;
+    
+    Fl_Window* loginWindow = new Fl_Window(500, 400, "User Login");
+    login->userName = new Fl_Input(100, 100, 250, 75, "username");
+    login->passWord = new Fl_Input(100, 200, 250, 75, "password");
+    login->systemCopy = this;
+
+    Fl_Button* loginB = new Fl_Button(300, 350, 100, 75, "login");
+
+    loginB->callback([](Fl_Widget* widget, void* data)
+    {
+        LoginS* login = static_cast<LoginS*>(data);
+
+        for (User* user : login->systemCopy->getUserlist())
+        {
+            if (login->userName->value() == user->getUsername())
+            {
+                std::cout << "Username Found" << std::endl;
+                if (login->passWord->value() == user->getPassword())
+                {
+                    std::cout << "Password found" << std::endl;
+                    login->userReturn = user;
+					std::cout << "Stage 2: " << &user << std::endl;
+					std::cout << "Stage 3: " << &login->userReturn << std::endl;
+					login->flag = true;
+
+					break;
+                }
+                else
+                    std::cout << "Bad Password" << std::endl;
+					break;
+            }
+            else
+                std::cout << "Bad Username" << std::endl;
+        }
+    }, login.get());
+
+    loginWindow->show();
+
+	while (!login->flag)
+	{
+		Fl::wait(); 
+	}
+	std::cout << "Stage 4: " << &login->userReturn << std::endl;
+	loginWindow->hide();
+	return login->userReturn;
 }
+
 
 
 struct UIComp
@@ -30,14 +92,14 @@ struct UIComp
 	Fl_Box* welcomeMessage;
 	Fl_Button* confirmButton;
 	Fl_Input* passwordInput;
-	System* systemInstance; // Store a pointer to the current System instance
+	System* systemInstance; 
 };
 
 void System::resetSettings()
 {
 	
 	UIComp uiComp;
-	uiComp.systemInstance = this; // Store the pointer to the current System instance
+	uiComp.systemInstance = this; 
 
 	std::cout << "reset Settings Debug Move" << std::endl; 
 	uiComp.welcomemWindow = new Fl_Window(600, 300, "Welcome!");
@@ -56,13 +118,11 @@ void System::resetSettings()
 			
 			uiData->confirmButton->callback([](Fl_Widget* widget, void* data)
 				{
-					
-			 
 					UIComp* uiData = static_cast<UIComp*>(data);
-					User newAdmin;
-					newAdmin.setUserPrivilege(Admin);
-					newAdmin.setUsername("defaultAdmin");
-					newAdmin.setPassword(uiData->passwordInput->value());
+					User* newAdmin = new User;
+					newAdmin->setUserPrivilege(Admin);
+					newAdmin->setUsername("defaultAdmin");
+					newAdmin->setPassword(uiData->passwordInput->value());
 					uiData->welcomemWindow->hide();
 					uiData->systemInstance->posMain(newAdmin);
 			
@@ -89,16 +149,18 @@ struct mainData
 
 };
 
-void System::setNewUser( User& newUser)
+void System::setNewUser(User* newUser)
 {
-	System::userList.push_back(newUser);
+	userList.push_back(newUser);
 }
 
 
-std::vector<User>& System::getUserlist()
+
+std::vector<User*>& System::getUserlist()
 {
-	return System::userList;
+	return userList;
 }
+
 
 std::vector<Food>& System::getFoodList()
 {
@@ -136,9 +198,9 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 				confirm->callback([](Fl_Widget* widget, void* data)
 					{
 						mainData* md = static_cast<mainData*>(data);
-						User newUser;
-						newUser.setUsername(md->newUsername->value());
-						newUser.setPassword(md->newPassword->value());
+						User* newUser = new User;
+						newUser->setUsername(md->newUsername->value());
+						newUser->setPassword(md->newPassword->value());
 						md->thisSystem->setNewUser(newUser);
 						widget->parent()->hide();
 						//add new admin? 
@@ -151,7 +213,7 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 
 		Fl_Button* removeEmployee = new Fl_Button(rightoff + boxSize, top, boxSize, boxSize, "Remove Employee");
 		removeEmployee->callback([](Fl_Widget* widget, void* data)
-			{
+			{/*
 				mainData* md = static_cast<mainData*>(data);
 				std::vector<User> userList = md->thisSystem->getUserlist();
 
@@ -160,8 +222,7 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 					//populate a dropDown menu  
 					std::cout << "Username: " << user.getUsername() << std::endl;
 					
-				}
-
+				}*/
 			}, md);
 
 
@@ -172,7 +233,7 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 			{
 				mainData* md = static_cast<mainData*>(data);
 				widget->parent()->hide();
-				md->thisSystem->posMain(*md->thisUser);
+				md->thisSystem->posMain(md->thisUser);
 
 			},md );
 
@@ -272,17 +333,7 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 		{
 	
 			inventoryUI* iUI = static_cast<inventoryUI*>(data);
-
-	for (int i = 0; i < iUI->lunchList->size(); i++)
-	{
-		std::cout << "lunch Item " << i << ": " << iUI->lunchList->at(i) << std::endl;
-	}
-
-			std::cout << "type" << iUI->type << std::endl;
 			if (iUI->type < 2) { iUI->type++;}
-			std::cout << "type after ++" << iUI->type << std::endl;
-
-			
 
 				if (iUI->type == 1)
 				{
@@ -378,24 +429,101 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 
 }
 
-
-
-
-void System::posMain(User& currentUser)
+void helpSupportCallback(Fl_Widget* widget, void* data)
 {
-	const int top      = 50;
+	widget->parent()->hide();
+	mainData* md = static_cast<mainData*>(data);
+	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "POS_SYSTEM");
+	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
+	Fl_Button* backButton = new Fl_Button(100, 700, 200, 200, "@<-");
+
+	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg4.png");
+	mainBox->image(wallpaper);
+
+
+
+
+
+
+
+	mainWindow->show();
+
+
+}
+
+void employeeMessageCallback(Fl_Widget* widget, void* data)
+{
+	widget->parent()->hide();
+	mainData* md = static_cast<mainData*>(data);
+	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "POS_SYSTEM");
+	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
+	Fl_Button* backButton = new Fl_Button(100, 700, 200, 200, "@<-");
+
+	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg3.png");
+	mainBox->image(wallpaper);
+
+
+
+
+
+
+
+	mainWindow->show();
+
+
+}
+
+
+void logoutCallback(Fl_Widget* widget, void* data)
+{
+
+	mainData* md = static_cast<mainData*>(data);
+	widget->parent()->hide();
+	if (fl_ask("Are you sure you want to log out?") == 1)
+		md->thisSystem->posMain(md->thisSystem->login());
+	else
+		widget->parent()->show();
+
+}
+
+void reserveTableCallback(Fl_Widget* widget, void* data)
+{
+
+	widget->parent()->hide();
+
+	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "Reserve Table");
+	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
+
+	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg.png");
+	mainBox->image(wallpaper);
+
+	Fl_Button* backButton = new Fl_Button(100, 1550, 300, 150, "@<-");
+
+}
+
+
+
+void System::posMain(User* currentUser)
+{
+	const int top = 50;
 	const int rightoff = 75;
-	const int boxSize  = 300;
+	const int boxSize = 300;
 	mainData md;
 	md.thisSystem = this;
-	md.thisUser = &currentUser;
+	md.thisUser = currentUser; // Pass the user pointer
 
 	createFoodItems(this->getFoodList());
 
+	// Now, you can access the user using md.thisUser as a pointer
+	if (md.thisUser != nullptr)
+	{
+		std::cout << "Logged-in Username: " << md.thisUser->getUsername() << std::endl;
+	}
+
 	Fl_Window* mainWindow =        new Fl_Window(1800, 1000, "POS_SYSTEM");
-	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
+	Fl_Box* mainBox =			   new Fl_Box(0, 0, 1800, 1000);
 	
-	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg1.png");
+	Fl_PNG_Image* wallpaper =	   new Fl_PNG_Image("Wallpaper\\bg1.png");
 	mainBox->image(wallpaper);
 	
 	//Row 1
@@ -413,28 +541,31 @@ void System::posMain(User& currentUser)
 	Fl_Button* employeeMessage =   new Fl_Button(rightoff + boxSize, top + boxSize * 2, boxSize, boxSize, "Employee Message");
 	Fl_Button* logout =            new Fl_Button(rightoff + (boxSize * 2), top + boxSize * 2, boxSize, boxSize, "Logout");
 
+	
+
 
 	//callbacks
 	newOrder->callback();
 	outStandingOrders->callback();
 	previousOrders->callback();
-	reserveTable->callback();
+	reserveTable->callback(reserveTableCallback, &md);
 	inventory->callback(inventoryCallback, &md);
 
 
 	managerControl->callback(managerControlCallback, &md);
 
-	helpSupport->callback();
-	employeeMessage->callback();
-	logout->callback();
+	helpSupport->callback(helpSupportCallback, &md);
+	employeeMessage->callback(employeeMessageCallback, &md);
+	logout->callback(logoutCallback, &md);
 
 
-	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top, 580, 900);
+	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top, 580, 500);
 	terminalDisplay->textfont(FL_COURIER);
 	terminalDisplay->textsize(16);
 	Fl_Text_Buffer* textBuffer = new Fl_Text_Buffer();
 	terminalDisplay->buffer(textBuffer);
 
+	Fl_Clock clock(1300, 600, 300, 300, "Clock");
 
 	mainWindow->show();
 	Fl::run();
@@ -454,7 +585,7 @@ bool System::retrieveSettings()
 		std::cin >> temp;
 		if (temp == 'T' || temp == 't')
 			return true;
-		else if (temp == 'N' || temp == 'n')
+		else if (temp == 'F' || temp == 'f')
 			return false;
 		else
 			std::cout << "BAD INPUT. Enter Again" << std::endl;
@@ -550,49 +681,6 @@ void createFoodItems(std::vector<Food>& foodItems)
 }
 
 
-
-
-void System::newOrder(Fl_Widget* widget, void*)
-{
-
-
-}
-void System::outStandingOrders(Fl_Widget* widget, void*)
-{
-
-
-}
-void System::previousOrders(Fl_Widget* widget, void*)
-{
-
-
-}
-void System::reserveTable(Fl_Widget* widget, void*)
-{
-
-
-}
-
-void System::managerControl(Fl_Widget* widget, void* data)
-{
-
-
-}
-void System::helpSupport(Fl_Widget* widget, void*)
-{
-
-	
-}
-void System::employeeMessage(Fl_Widget* widget, void*)
-{
-
-
-}
-void System::logout(Fl_Widget* widget, void*)
-{
-
-
-}
 
 
 

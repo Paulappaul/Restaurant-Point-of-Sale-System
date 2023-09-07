@@ -31,3 +31,4 @@ bool User::getUserPrivilege()
     return User::userPrivilege;
 
 }
+
