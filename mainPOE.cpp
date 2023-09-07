@@ -3,10 +3,17 @@
 
 void exitFunction(System& thisSystem)
 {
+    for (User* user : thisSystem.getUserlist())
+    {
+        std::cout << "deleting: " << user->getUsername();
+        delete user;
 
-	std::cout << "Exit called" << std::endl;
+    }
 
+
+    thisSystem.getUserlist().clear();
 }
+
 
 int main()
 {

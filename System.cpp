@@ -38,12 +38,12 @@ User* System::login()
     std::cout << "debug login " << std::endl;
 	std::cout << "Stage 1: " << &testUser << std::endl;
     
-    Fl_Window* loginWindow = new Fl_Window(500, 400, "User Login");
-    login->userName = new Fl_Input(100, 100, 250, 75, "username");
-    login->passWord = new Fl_Input(100, 200, 250, 75, "password");
+    Fl_Window* loginWindow = new Fl_Window(500, 200, "User Login");
+    login->userName = new Fl_Input(125, 20, 250, 40, "username");
+    login->passWord = new Fl_Input(125, 100, 250, 40, "password");
     login->systemCopy = this;
 
-    Fl_Button* loginB = new Fl_Button(300, 350, 100, 75, "login");
+    Fl_Button* loginB = new Fl_Button(300, 155, 75, 30, "login");
 
     loginB->callback([](Fl_Widget* widget, void* data)
     {
@@ -145,8 +145,6 @@ struct mainData
     Fl_Input* newPassword;
 	Fl_Widget* previousParent;
 	
-
-
 };
 
 void System::setNewUser(User* newUser)
@@ -213,16 +211,16 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 
 		Fl_Button* removeEmployee = new Fl_Button(rightoff + boxSize, top, boxSize, boxSize, "Remove Employee");
 		removeEmployee->callback([](Fl_Widget* widget, void* data)
-			{/*
+			{
 				mainData* md = static_cast<mainData*>(data);
-				std::vector<User> userList = md->thisSystem->getUserlist();
+				std::vector<User*> userList = md->thisSystem->getUserlist();
 
-				for (User& user : userList)
+				for (User* user : userList)
 				{
 					//populate a dropDown menu  
-					std::cout << "Username: " << user.getUsername() << std::endl;
+					std::cout << "Username: " << user->getUsername() << std::endl;
 					
-				}*/
+				}
 			}, md);
 
 
@@ -260,8 +258,8 @@ struct inventoryUI
 void inventoryCallback(Fl_Widget* widget, void* data)
 {
 	const int boxSize = 200; 
-	const int xOffset = 75;  
-	const int yOffset = 50;  
+	const int xOffset = 500;  
+	const int yOffset = 100;  
 	//an inventory of all the items, back and forward buttons
 
 	widget->parent()->hide();
@@ -275,8 +273,8 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg2.png");
 	mainBox->image(wallpaper);
 
-	Fl_Button* backButton = new Fl_Button(xOffset, 650, 300, 200, "@<-");
-	Fl_Button* nextButton = new Fl_Button(1550, 650, 300, 200, "@->");
+	Fl_Button* backButton = new Fl_Button(100, 800, 150, 100, "@<-");
+	Fl_Button* nextButton = new Fl_Button(1550, 800, 150, 100, "@->");
 
 	std::shared_ptr<std::vector<std::string>> breakfastList = std::make_shared<std::vector<std::string>>();
 	std::shared_ptr<std::vector<std::string>> lunchList =     std::make_shared<std::vector<std::string>>();
@@ -296,22 +294,9 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 		else if(foodList.at(i).getFoodType() == dinner)
 			dinnerList->push_back(foodList.at(i).getName());
 	}
-	
-	for (int i = 0; i < breakfastList->size(); i++)
-	{
-		std::cout << "Breakfast Item " << i << ": " << breakfastList->at(i) << std::endl;
-	}
-
-	for (int i = 0; i < lunchList->size(); i++)
-	{
-		std::cout << "Breakfast Item " << i << ": " << lunchList->at(i) << std::endl;
-	}
 
 	//Breakfast list
 	int i = 0;
-
-	
-
 	for (int row = 0; row < 4; row++)
 	{
 		for (int col = 0; col < 4; col++)
@@ -323,8 +308,6 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 
 			iUI->button[buttonIndex] = new Fl_Button(x, y, boxSize, boxSize, strdup(breakfastList->at(i).c_str()));
 			i++;
-			std::cout << i << std::endl;
-			
 		}
 	}
 
@@ -454,7 +437,8 @@ void helpSupportCallback(Fl_Widget* widget, void* data)
 void employeeMessageCallback(Fl_Widget* widget, void* data)
 {
 	widget->parent()->hide();
-	mainData* md = static_cast<mainData*>(data);
+	mainData* md = static_cast<mainData*>(data);\
+
 	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "POS_SYSTEM");
 	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
 	Fl_Button* backButton = new Fl_Button(100, 700, 200, 200, "@<-");
@@ -462,13 +446,18 @@ void employeeMessageCallback(Fl_Widget* widget, void* data)
 	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg3.png");
 	mainBox->image(wallpaper);
 
-
-
-
-
-
+	backButton->callback([](Fl_Widget* widget2, void* data) 
+		{
+			
+			widget2->parent()->hide();
+		    Fl_Widget* lastWidget = static_cast<Fl_Widget*>(data);
+			lastWidget->parent()->show();
+			delete widget2->parent();
+		
+		}, widget);
 
 	mainWindow->show();
+	
 
 
 }
@@ -497,8 +486,24 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg.png");
 	mainBox->image(wallpaper);
 
-	Fl_Button* backButton = new Fl_Button(100, 1550, 300, 150, "@<-");
+	Fl_Button* table1 = new Fl_Button(100, 100, 200, 400, "Table 1");
+	Fl_Button* table2 = new Fl_Button(400, 100, 200, 400, "Table 2");
 
+	Fl_Button* table3 = new Fl_Button(600, 500, 200, 400, "Table 3");
+	Fl_Button* table4 = new Fl_Button(900, 500, 200, 400, "Table 4");
+
+	Fl_Button* table5 = new Fl_Button(1200, 100, 200, 600, "Table 5");
+	Fl_Button* table6 = new Fl_Button(1500, 100, 200, 600, "Table 6");
+
+	Fl_Button* bar = new Fl_Button(700, 100, 400, 200, "Bar");
+
+	Fl_Box* mainLabel = new Fl_Box(100, 600, 200, 300, "Click the table you'd like to reserve");
+
+
+
+	Fl_Button* backButton = new Fl_Button(100, 850, 100, 50, "@<-");
+
+	mainWindow->show();
 }
 
 
@@ -528,7 +533,7 @@ void System::posMain(User* currentUser)
 	
 	//Row 1
 	Fl_Button* newOrder =          new Fl_Button(rightoff,                 top, boxSize, boxSize, "New Order");
-	Fl_Button* outStandingOrders = new Fl_Button(rightoff + boxSize, top, boxSize, boxSize, "Outstanding Orders");
+	Fl_Button* outStandingOrders = new Fl_Button(rightoff + boxSize, top, boxSize, boxSize, "Current Orders");
 	Fl_Button* previousOrders =    new Fl_Button(rightoff + (boxSize * 2), top, boxSize, boxSize, "Previous Orders");
 
 	//Row 2
@@ -538,10 +543,46 @@ void System::posMain(User* currentUser)
 
 	//Row 3
 	Fl_Button* helpSupport =       new Fl_Button(rightoff,                 top + boxSize * 2, boxSize, boxSize, "Help/Support");
-	Fl_Button* employeeMessage =   new Fl_Button(rightoff + boxSize, top + boxSize * 2, boxSize, boxSize, "Employee Message");
+	Fl_Button* employeeMessage =   new Fl_Button(rightoff + boxSize, top + boxSize * 2, boxSize, boxSize, "Daily Message");
 	Fl_Button* logout =            new Fl_Button(rightoff + (boxSize * 2), top + boxSize * 2, boxSize, boxSize, "Logout");
 
-	
+	newOrder->color(FL_DARK_RED);
+	outStandingOrders->color(FL_DARK_RED);
+	previousOrders->color(FL_DARK_RED);
+
+	reserveTable->color(FL_DARK_GREEN);
+	inventory->color(FL_DARK_MAGENTA);
+	managerControl->color(FL_DARK_CYAN);
+
+	helpSupport->color(FL_BLUE);
+	employeeMessage->color(FL_BLUE);
+	logout->color(FL_RED);
+
+	newOrder->type(FL_BORDER_BOX);
+	outStandingOrders->type(FL_BORDER_BOX);
+	previousOrders->type(FL_BORDER_BOX);
+
+	reserveTable->type(FL_BORDER_BOX);
+	inventory->type(FL_BORDER_BOX);
+	managerControl->type(FL_BORDER_BOX);
+
+	helpSupport->type(FL_BORDER_BOX);
+	employeeMessage->type(FL_BORDER_BOX);
+	logout->type(FL_BORDER_BOX);
+
+	newOrder->labelsize(36);
+	outStandingOrders->labelsize(36);
+	previousOrders->labelsize(36);
+
+	reserveTable->labelsize(36);
+	inventory->labelsize(36);
+	managerControl->labelsize(36);
+
+	helpSupport->labelsize(36);
+	employeeMessage->labelsize(36);
+	managerControl->labelsize(36);
+	logout->labelsize(36);
+
 
 
 	//callbacks
