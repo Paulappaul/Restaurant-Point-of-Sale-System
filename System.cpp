@@ -144,6 +144,7 @@ struct mainData
 	Fl_Input* newUsername;
     Fl_Input* newPassword;
 	Fl_Widget* previousParent;
+	std::shared_ptr<std::string> dailymessage;
 	
 };
 
@@ -251,6 +252,7 @@ struct inventoryUI
 	std::shared_ptr<std::vector<std::string>> dinnerList;
 	std::shared_ptr<std::vector<std::string>> breakfastList;
 	int type = 0; 
+	Fl_Widget* previousParent;
 
 
 };
@@ -266,6 +268,8 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 
 	mainData* md = static_cast<mainData*>(data);
 	inventoryUI* iUI = new inventoryUI;
+
+	iUI->previousParent = widget->parent();
 	std::vector<Food> foodList = md->thisSystem->getFoodList();
 
 	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "Inventory");
@@ -305,8 +309,10 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 			int x = col * boxSize + xOffset;
 			int y = row * boxSize + yOffset;
 
+			std::string label = iUI->breakfastList->at(i);
+			const char* clabel = label.c_str();
 
-			iUI->button[buttonIndex] = new Fl_Button(x, y, boxSize, boxSize, strdup(breakfastList->at(i).c_str()));
+			iUI->button[buttonIndex] = new Fl_Button(x, y, boxSize, boxSize, strdup(clabel));
 			i++;
 		}
 	}
@@ -315,99 +321,78 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 	nextButton->callback([](Fl_Widget* widget, void* data)
 		{
 	
-			inventoryUI* iUI = static_cast<inventoryUI*>(data);
-			if (iUI->type < 2) { iUI->type++;}
+			
+	inventoryUI* iUI = static_cast<inventoryUI*>(data);
+	std::cout << iUI->type << std::endl;
+	if (iUI->type < 2) {
+		iUI->type++;
 
-				if (iUI->type == 1)
-				{
-					
+		for (int row = 0; row < 4; row++) {
+			for (int col = 0; col < 4; col++) {
+				int buttonIndex = row * 4 + col;
 
-					//lunchList
-					for (int row = 0; row < 4; row++)
-					{
-						for (int col = 0; col < 4; col++)
-						{
-							int buttonIndex = row * 4 + col;
-							
-							std::string label = iUI->lunchList->at(buttonIndex);
-							const char* clabel = label.c_str();
-
-							iUI->button[buttonIndex]->label(strdup(clabel));
-							iUI->button[buttonIndex]->redraw_label();
-
-						}
-					}
+				std::string label = "";
+				if (iUI->type == 2) {
+					label = iUI->dinnerList->at(buttonIndex);
 				}
-				else if (iUI->type == 2)
-				{
-
-					//dinnerList
-					for (int row = 0; row < 4; row++)
-					{
-						for (int col = 0; col < 4; col++)
-						{
-							int buttonIndex = row * 4 + col;
-
-							std::string label = iUI->dinnerList->at(buttonIndex);
-							const char* clabel = label.c_str();
-							iUI->button[buttonIndex]->label(strdup(clabel));
-							iUI->button[buttonIndex]->redraw_label();
-						}
-					}
-
-
-
+				else if (iUI->type == 1) {
+					label = iUI->lunchList->at(buttonIndex);
 				}
-				else { std::cout << "Cannot proceed" << std::endl; }
 
+				const char* clabel = label.c_str();
+
+				// Free the old label before setting the new one
+				free((void*)iUI->button[buttonIndex]->label());
+
+				iUI->button[buttonIndex]->label(strdup(clabel));
+				iUI->button[buttonIndex]->redraw_label();
+			}
+		}
+	}
 		}, iUI);
-
+	
 
 	backButton->callback([](Fl_Widget* widget, void* data)
 		{
 			inventoryUI* iUI = static_cast<inventoryUI*>(data);
+		std::cout << iUI->type << std::endl;
+		if (iUI->type > -1) {
+			iUI->type--;
 
-				if (iUI->type > 0) { iUI->type--;}
+			if (iUI->type == -1)
+			{
+				widget->parent()->hide();
+				iUI->previousParent->show();
+				
+			}
 
-				if (iUI->type == 1)
-				{
+			for (int row = 0; row < 4; row++) {
+				for (int col = 0; col < 4; col++) {
+					int buttonIndex = row * 4 + col;
 
-					//lunchList
-					for (int row = 0; row < 4; row++)
-					{
-						for (int col = 0; col < 4; col++)
-						{
-							int buttonIndex = row * 4 + col;
-							iUI->button[buttonIndex]->label(iUI->lunchList->at(buttonIndex).c_str());
-			
-						}
+					std::string label = "";
+					if (iUI->type == 1) {
+						label = iUI->lunchList->at(buttonIndex);
 					}
-				}
-				else if (iUI->type == 0)
-				{
-
-					//breakfastList
-					for (int row = 0; row < 4; row++)
-					{
-						for (int col = 0; col < 4; col++)
-						{
-							int buttonIndex = row * 4 + col;
-							iUI->button[buttonIndex]->label(iUI->breakfastList->at(buttonIndex).c_str());
-			
-						}
+					else if (iUI->type == 0) {
+						label = iUI->breakfastList->at(buttonIndex);
 					}
-			
-			
-			
-				}
-				else { std::cout << "Cannot proceed" << std::endl; }
-			
 
 
-		});
+					const char* clabel = label.c_str();
+
+					// Free the old label before setting the new one
+					free((void*)iUI->button[buttonIndex]->label());
+
+					iUI->button[buttonIndex]->label(strdup(clabel));
+					iUI->button[buttonIndex]->redraw_label();
+			}
+		}
+	}
+		}, iUI);
+
 
 	mainWindow->show();
-
 
 
 }
@@ -423,10 +408,8 @@ void helpSupportCallback(Fl_Widget* widget, void* data)
 	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg4.png");
 	mainBox->image(wallpaper);
 
-
-
-
-
+	Fl_Button* employeeManual = new Fl_Button(100, 100, 200, 200, "Employee Manual");
+	Fl_Button* harrassmentPolicy = new Fl_Button(325, 100, 200, 200, "Harrasment Policy");
 
 
 	mainWindow->show();
@@ -441,10 +424,16 @@ void employeeMessageCallback(Fl_Widget* widget, void* data)
 
 	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "POS_SYSTEM");
 	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
+	Fl_Box* dialogue = new Fl_Box(400, 200, 1000, 600, "TEST");
 	Fl_Button* backButton = new Fl_Button(100, 700, 200, 200, "@<-");
 
 	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\bg3.png");
 	mainBox->image(wallpaper);
+
+	
+
+	const char* messageP = md->dailymessage->c_str();
+	dialogue->label(messageP);
 
 	backButton->callback([](Fl_Widget* widget2, void* data) 
 		{
@@ -468,8 +457,13 @@ void logoutCallback(Fl_Widget* widget, void* data)
 
 	mainData* md = static_cast<mainData*>(data);
 	widget->parent()->hide();
+
 	if (fl_ask("Are you sure you want to log out?") == 1)
+	{
+		//Fl::delete_widget(widget); // if crash this is likelyy
 		md->thisSystem->posMain(md->thisSystem->login());
+		//delete md;
+	}
 	else
 		widget->parent()->show();
 
@@ -503,6 +497,16 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 
 	Fl_Button* backButton = new Fl_Button(100, 850, 100, 50, "@<-");
 
+	backButton->callback([](Fl_Widget* widget2, void* data)
+		{
+
+			widget2->parent()->hide();
+	Fl_Widget* lastWidget = static_cast<Fl_Widget*>(data);
+	lastWidget->parent()->show();
+	delete widget2->parent();
+
+		}, widget);
+
 	mainWindow->show();
 }
 
@@ -518,6 +522,7 @@ void System::posMain(User* currentUser)
 	md.thisUser = currentUser; // Pass the user pointer
 
 	createFoodItems(this->getFoodList());
+	md.dailymessage = dailyMesssageDemo();
 
 	// Now, you can access the user using md.thisUser as a pointer
 	if (md.thisUser != nullptr)
@@ -719,6 +724,13 @@ void createFoodItems(std::vector<Food>& foodItems)
 			foodItems.push_back(dessertItem);
 		}
 	
+}
+
+std::shared_ptr<std::string> dailyMesssageDemo()
+{
+	auto dailymessage = std::make_shared<std::string>(
+		"We hope this message finds you well. ..."); // Your long message
+	return dailymessage;
 }
 
 

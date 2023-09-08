@@ -40,3 +40,5 @@ private:
 struct UIComp;
 struct mainData;
 void createFoodItems(std::vector<Food>& foodItems);
+
+std::shared_ptr<std::string> dailyMesssageDemo();
