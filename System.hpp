@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <vector>
-#include <string>
+#include "Till.hpp"
 #include "User.hpp"
 #include "Item.hpp"
 

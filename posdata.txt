@@ -2,5 +2,6 @@
 [~$USER~] Paul Paul true
 [~$USER~] Paul2 Paul2 false
 [~$FOOD~] Bacon 23 1 1
+[~$TILL~] 100
 [PIZZA] PONG PIZZA BAKE
 

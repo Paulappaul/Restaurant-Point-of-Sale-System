@@ -717,9 +717,14 @@ bool System::retrieveSettings()
 
 
 			}
-			if (chunk == "[~$TILL~}")
+			if (chunk == "[~$TILL~]")
 			{
-				
+				Till till;
+				sts >> chunk;
+				if (till.setBalance(std::stoi(chunk)))
+				 std::cout << "Balance: " << chunk << std::endl;
+				else
+					std::cout << "no balance" << std::endl;
 
 			}
 		}
