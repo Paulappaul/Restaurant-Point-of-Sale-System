@@ -1,0 +1,6 @@
+[posData]
+[~$USER~] Paul Paul true
+[~$USER~] Paul2 Paul2 false
+[~$FOOD~] Bacon 23 1 1
+[PIZZA] PONG PIZZA BAKE
+

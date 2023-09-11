@@ -15,6 +15,9 @@
 #include <FL/Fl_PNG_Image.H>
 #include <FL/Fl_Clock.H>
 #include <FL/fl_ask.H>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 
 class System

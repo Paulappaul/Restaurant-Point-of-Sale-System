@@ -186,6 +186,7 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 		const int boxSize = 300;
 		Fl_Button* newUser = new Fl_Button(rightoff, top, boxSize, boxSize, "Add Employee");
 
+
 		newUser->callback([](Fl_Widget* widget, void* data)
 			{
 				mainData* mdpass =         static_cast<mainData*>(data);
@@ -313,6 +314,7 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 			const char* clabel = label.c_str();
 
 			iUI->button[buttonIndex] = new Fl_Button(x, y, boxSize, boxSize, strdup(clabel));
+			iUI->button[buttonIndex]->color(FL_DARK_YELLOW);
 			i++;
 		}
 	}
@@ -334,9 +336,11 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 				std::string label = "";
 				if (iUI->type == 2) {
 					label = iUI->dinnerList->at(buttonIndex);
+					iUI->button[buttonIndex]->color(FL_RED);
 				}
 				else if (iUI->type == 1) {
 					label = iUI->lunchList->at(buttonIndex);
+					iUI->button[buttonIndex]->color(FL_GREEN);
 				}
 
 				const char* clabel = label.c_str();
@@ -346,6 +350,7 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 
 				iUI->button[buttonIndex]->label(strdup(clabel));
 				iUI->button[buttonIndex]->redraw_label();
+				
 			}
 		}
 	}
@@ -373,9 +378,11 @@ void inventoryCallback(Fl_Widget* widget, void* data)
 					std::string label = "";
 					if (iUI->type == 1) {
 						label = iUI->lunchList->at(buttonIndex);
+						iUI->button[buttonIndex]->color(FL_GREEN);
 					}
 					else if (iUI->type == 0) {
 						label = iUI->breakfastList->at(buttonIndex);
+						iUI->button[buttonIndex]->color(FL_DARK_YELLOW);
 					}
 
 
@@ -411,6 +418,16 @@ void helpSupportCallback(Fl_Widget* widget, void* data)
 	Fl_Button* employeeManual = new Fl_Button(100, 100, 200, 200, "Employee Manual");
 	Fl_Button* harrassmentPolicy = new Fl_Button(325, 100, 200, 200, "Harrasment Policy");
 
+
+	backButton->callback([](Fl_Widget* widget2, void* data)
+		{
+
+			widget2->parent()->hide();
+			Fl_Widget* lastWidget = static_cast<Fl_Widget*>(data);
+			lastWidget->parent()->show();
+			delete widget2->parent();
+
+		}, widget);
 
 	mainWindow->show();
 
@@ -610,8 +627,10 @@ void System::posMain(User* currentUser)
 	terminalDisplay->textsize(16);
 	Fl_Text_Buffer* textBuffer = new Fl_Text_Buffer();
 	terminalDisplay->buffer(textBuffer);
+	//Fl_Clock clock(1300, 600, 300, 300, "Clock");
 
-	Fl_Clock clock(1300, 600, 300, 300, "Clock");
+	Fl_Box* userLabel = new Fl_Box(1300, 800, 300, 100, strdup(md.thisUser->getUsername().c_str()));
+	std::cout << md.thisUser->getUsername() << std::endl;
 
 	mainWindow->show();
 	Fl::run();
@@ -621,10 +640,101 @@ void System::posMain(User* currentUser)
 
 bool System::retrieveSettings()
 {
+	std::ifstream inputFile;
+
+	// Open a file for reading
+	inputFile.open("posdata.txt");
+
+	// Check if the file opened successfully
+	if (!inputFile.is_open())
+	{
+		std::cerr << "Unable to open the file." << std::endl;
+		return 1; // Return an error code
+	}
+
+	
+	std::string line;
+	bool foundHeader = false;
+
+	while (std::getline(inputFile, line))
+	{
+		if (line == "[posData]") {
+			std::cout << "Header found" << std::endl;
+			foundHeader = true;
+		}
+		else if (foundHeader && !line.empty())
+		{
+			std::istringstream sts(line);
+			std::string chunk;
+
+			sts >> chunk; // Read the first token
+			if (chunk == "[~$USER~]")
+			{
+				std::cout << chunk;
+
+				User* newUser = new User;
+				std::cout << "User found" << std::endl;
+
+				sts >> chunk; // Read username
+				newUser->setUsername(chunk);
+				std::cout << chunk;
+
+				sts >> chunk; // Read password
+				newUser->setPassword(chunk);
+				std::cout << chunk;
+
+				sts >> chunk; // Read privilege
+				newUser->setUserPrivilege(chunk == "true" ? 0 : 1);
+				this->userList.push_back(newUser);
+				std::cout << chunk;
+
+			}
+			if (chunk == "[~$FOOD~]")
+			{
+
+				std::cout << chunk << " ";
+				Food newFood;
+				//get name
+				sts >> chunk;
+				newFood.setName(chunk);
+
+				//Price
+				sts >> chunk;
+				newFood.setPrice(std::stoi(chunk));
+				std::cout << std::stoi(chunk) << " ";
+
+				//Stock
+				sts >> chunk;
+				newFood.setStock(std::stoi(chunk));
+				std::cout << std::stoi(chunk) << " ";
+
+				//Type
+				sts >> chunk;
+				newFood.setFoodType(std::stoi(chunk));
+				std::cout << std::stoi(chunk) << " ";
+
+				this->foodList.push_back(newFood);
+
+
+			}
+			if (chunk == "[~$TILL~}")
+			{
+				
+
+			}
+		}
+	}
+
+	inputFile.close();
+
+
+
+	//DEBUG MODE
 	char temp = ' ';
 	std::cout << "Debug mode entered" <<
 			     "Enter T or F " << std::endl;
-	
+
+
 
 	while (true)
 	{
@@ -637,16 +747,6 @@ bool System::retrieveSettings()
 			std::cout << "BAD INPUT. Enter Again" << std::endl;
 	}
 	
-	/*
-	std::string temp;
-	//getLine
-	if(temp == " ")
-		return false;
-	else
-	//populate 
-
-	return true;
-	*/
 }
 
 
