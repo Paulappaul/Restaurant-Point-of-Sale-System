@@ -527,6 +527,21 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 	mainWindow->show();
 }
 
+void newOrderCallback(Fl_Widget* widget, void* data) 
+{
+	Fl_Text_Buffer* textBuffer = static_cast<Fl_Text_Buffer*>(data);
+
+	// Clear the existing text in the text display
+	textBuffer->remove(0, textBuffer->length());
+
+	// Add the new order information to the text display
+	const char* newOrderText = "New order information goes here.";
+	textBuffer->append(newOrderText);
+
+	// Redraw the text display to update its content
+	textBuffer->call_modify_callbacks();
+}
+
 
 
 void System::posMain(User* currentUser)
@@ -568,6 +583,12 @@ void System::posMain(User* currentUser)
 	Fl_Button* employeeMessage =   new Fl_Button(rightoff + boxSize, top + boxSize * 2, boxSize, boxSize, "Daily Message");
 	Fl_Button* logout =            new Fl_Button(rightoff + (boxSize * 2), top + boxSize * 2, boxSize, boxSize, "Logout");
 
+	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top, 580, 500);
+	terminalDisplay->textfont(FL_COURIER);
+	terminalDisplay->textsize(16);
+	Fl_Text_Buffer* textBuffer = new Fl_Text_Buffer();
+	terminalDisplay->buffer(textBuffer);
+
 	newOrder->color(FL_DARK_RED);
 	outStandingOrders->color(FL_DARK_RED);
 	previousOrders->color(FL_DARK_RED);
@@ -608,7 +629,7 @@ void System::posMain(User* currentUser)
 
 
 	//callbacks
-	newOrder->callback();
+	newOrder->callback(newOrderCallback, textBuffer);
 	outStandingOrders->callback();
 	previousOrders->callback();
 	reserveTable->callback(reserveTableCallback, &md);
@@ -622,12 +643,8 @@ void System::posMain(User* currentUser)
 	logout->callback(logoutCallback, &md);
 
 
-	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top, 580, 500);
-	terminalDisplay->textfont(FL_COURIER);
-	terminalDisplay->textsize(16);
-	Fl_Text_Buffer* textBuffer = new Fl_Text_Buffer();
-	terminalDisplay->buffer(textBuffer);
-	//Fl_Clock clock(1300, 600, 300, 300, "Clock");
+
+	Fl_Clock clock(1300, 600, 300, 300, "Clock");
 
 	Fl_Box* userLabel = new Fl_Box(1300, 800, 300, 100, strdup(md.thisUser->getUsername().c_str()));
 	std::cout << md.thisUser->getUsername() << std::endl;
