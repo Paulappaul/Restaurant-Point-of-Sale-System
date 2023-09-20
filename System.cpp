@@ -39,11 +39,11 @@ User* System::login()
 	std::cout << "Stage 1: " << &testUser << std::endl;
     
     Fl_Window* loginWindow = new Fl_Window(500, 200, "User Login");
-    login->userName = new Fl_Input(125, 20, 250, 40, "username");
-    login->passWord = new Fl_Input(125, 100, 250, 40, "password");
+    login->userName =		 new Fl_Input(125, 20, 250, 40, "username");
+    login->passWord =		 new Fl_Input(125, 100, 250, 40, "password");
     login->systemCopy = this;
 
-    Fl_Button* loginB = new Fl_Button(300, 155, 75, 30, "login");
+    Fl_Button* loginB =		 new Fl_Button(300, 155, 75, 30, "login");
 
     loginB->callback([](Fl_Widget* widget, void* data)
     {
@@ -181,26 +181,28 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 	mainData* md = static_cast<mainData*>(data);
 	if (md->thisUser->getUserPrivilege() == true)
 	{
-		
-		widget->parent()->hide();
-		md->previousParent = widget;
-		Fl_Window* mainWindow = new Fl_Window(1800, 1000, "Manager Window");
-		Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
-		Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\red.png");
-		mainBox->image(wallpaper);
 		const int top = 30;
 		const int rightoff = 30;
 		const int boxSize = 300;
-		Fl_Button* newUser = new Fl_Button(rightoff, top, boxSize, boxSize, "Add Employee");
+		
+		widget->parent()->hide();
+		md->previousParent = widget;
+		Fl_Window* mainWindow =		new Fl_Window(1800, 1000, "Manager Window");
+		Fl_Box* mainBox =			new Fl_Box(0, 0, 1800, 1000);
+		Fl_PNG_Image* wallpaper =   new Fl_PNG_Image("Wallpaper\\red.png");
+		Fl_Button* newUser =		new Fl_Button(rightoff, top, boxSize, boxSize, "Add Employee");
+		mainBox->image(wallpaper);
+
+		
 
 
 		newUser->callback([](Fl_Widget* widget, void* data)
 			{
 				mainData* mdpass =         static_cast<mainData*>(data);
-				Fl_Window* newUserWindow = new Fl_Window(600, 300, "Add New User");
-				mdpass->newUsername =      new Fl_Input(50, 50, 200, 100, "username");
-				mdpass->newPassword =      new Fl_Input(50, 150, 200, 100, "password");
-				Fl_Button* confirm =       new Fl_Button(150, 250, 50, 50);
+				Fl_Window* newUserWindow = new Fl_Window(500, 200, "Add New User");
+				mdpass->newUsername =      new Fl_Input(125, 20, 250, 40, "username");
+				mdpass->newPassword =		new Fl_Input(125, 100, 250, 40, "password");
+				Fl_Button* confirm =       new Fl_Button(300, 155, 75, 30, "confirm");
 
 				confirm->callback([](Fl_Widget* widget, void* data)
 					{
@@ -235,7 +237,7 @@ void managerControlCallback(Fl_Widget* widget, void* data)
 
 
 
-		Fl_Button* backButton = new Fl_Button(rightoff, 950, 300, 200, "@<-");
+		Fl_Button* backButton = new Fl_Button(rightoff, 750, 200, 200, "@<-");
 		backButton->callback([](Fl_Widget* widget, void* data)
 			{
 				mainData* md = static_cast<mainData*>(data);
@@ -507,6 +509,44 @@ void logoutCallback(Fl_Widget* widget, void* data)
 
 }
 
+void tableCallback(Fl_Widget* widget, void* data)
+{
+	Fl_Window* popUpWindow = new Fl_Window(500, 100, "Portal");
+	Fl_Choice* dropdown = new Fl_Choice(150, 35, 200, 30, "Select destination:");
+	Fl_Button* selectButton = new Fl_Button(375, 35, 100, 30, "confirm");
+
+	int hour = 0;
+	int minute = 0;
+
+	for (int i = 0; i < 48; i++)
+	{
+		std::string reserveTimes = std::to_string(hour) + ":" + (minute == 0 ? "00" : "30");
+		dropdown->add(reserveTimes.c_str());
+
+		minute += 30;
+		if (minute >= 60)
+		{
+			minute = 0;
+			hour++;
+			if (hour == 12)
+			{
+				hour = 0;
+			}
+		}
+	}
+
+	selectButton->callback([](Fl_Widget* widget, void* data)
+		{
+			Fl_Choice* dropdown = static_cast<Fl_Choice*>(data);
+			std::cout << "dropdown value: " << dropdown->value() << std::endl;;
+			
+		}, dropdown);
+
+	popUpWindow->end();
+	popUpWindow->show();
+}
+
+
 void reserveTableCallback(Fl_Widget* widget, void* data)
 {
 
@@ -531,9 +571,15 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 
 	Fl_Box* mainLabel = new Fl_Box(100, 600, 200, 300, "Click the table you'd like to reserve");
 
-
-
 	Fl_Button* backButton = new Fl_Button(100, 850, 100, 50, "@<-");
+
+	table1->callback(tableCallback);
+	table2->callback(tableCallback);
+	table3->callback(tableCallback);
+	table4->callback(tableCallback);
+	table5->callback(tableCallback);
+	table6->callback(tableCallback);
+	mainLabel->labelsize(20);
 
 	backButton->callback([](Fl_Widget* widget2, void* data)
 		{
@@ -545,6 +591,7 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 
 		}, widget);
 
+	mainWindow->end();
 	mainWindow->show();
 }
 
