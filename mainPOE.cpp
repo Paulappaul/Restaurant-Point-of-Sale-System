@@ -5,8 +5,14 @@ void exitFunction(System& thisSystem)
 {
     for (User* user : thisSystem.getUserlist())
     {
-        std::cout << "deleting: " << user->getUsername();
+        std::cout << "deleting: " << user->getUsername() << std::endl;
         delete user;
+
+    }
+    for (char* charD : thisSystem.getOrder2Free())
+    {
+        std::cout << "charD: " << charD << std::endl;
+        free (charD);
 
     }
 

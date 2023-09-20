@@ -149,7 +149,9 @@ struct mainData
 	std::vector<std::string> currentOrder;
 	std::vector < std::vector<std::string>>previousOrder;
 	Till* systemTillptr;
+	Fl_Box* orderNumber;
 	double orderPrice = 0;
+	int intOrderNumber = 1;
 	
 };
 
@@ -513,7 +515,7 @@ void reserveTableCallback(Fl_Widget* widget, void* data)
 	Fl_Window* mainWindow = new Fl_Window(1800, 1000, "Reserve Table");
 	Fl_Box* mainBox = new Fl_Box(0, 0, 1800, 1000);
 
-	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\red.png");
+	Fl_PNG_Image* wallpaper = new Fl_PNG_Image("Wallpaper\\wood.png");
 	mainBox->image(wallpaper);
 
 	Fl_Button* table1 = new Fl_Button(100, 100, 200, 400, "Table 1");
@@ -778,91 +780,82 @@ void previousCallback(Fl_Widget* widget, void* data)
 	}
 }
 
-void submitButtonCallback(Fl_Widget* widget, void* data)
+std::vector<char*>& System::getOrder2Free() 
 {
-	//repeat code ere...
-	mainData* md = static_cast<mainData*>(data);
+	return order2free;
+}
 
-	std::cout << "total order price: " << md->orderPrice << "total balance" << md->systemTillptr->getBalance() << std::endl;
 
-	if (md->orderPrice > md->systemTillptr->getBalance())
+void updateOrderInfo(mainData* md)
+{
+    // Get the contents of the text buffer and store in the vector
+    const char* bufferText = md->orderList->text();
+    if (bufferText) {
+        std::string text(bufferText);
+        size_t pos = 0;
+        while ((pos = text.find("\n")) != std::string::npos) {
+            md->currentOrder.push_back(text.substr(0, pos));
+            text.erase(0, pos + 1);
+        }
+        md->currentOrder.push_back(text);  // Add the last line
+    }
+
+    std::string submitedPrice = std::to_string(md->orderPrice);
+    std::string finalPriceMessage = "Checkout: " + submitedPrice;
+    const char* charPass = finalPriceMessage.c_str();
+
+    md->orderList->append(charPass);
+
+    md->intOrderNumber++;
+    std::cout << "Order Number" << md->intOrderNumber << std::endl;
+
+    // Convert the integer to a string and concatenate it with the string
+    std::string finalOrder = "Current Order: " + std::to_string(md->intOrderNumber);
+   const char* finalOrderMessage = finalOrder.c_str();
+	char* duplicatedMessage = strdup(finalOrderMessage);
+
+    std::cout << "final message = " << duplicatedMessage << std::endl;
+    md->orderNumber->label(duplicatedMessage);
+    md->orderNumber->redraw_label();
+
+    // Print the lines in the vector
+    for (const std::string& line : md->currentOrder) {
+        std::cout << line << std::endl;
+    }
+
+	md->thisSystem->getOrder2Free().push_back(duplicatedMessage);
+}
+
+void submitButtonCallback(Fl_Widget* widget, void* data) 
+{
+    mainData* md = static_cast<mainData*>(data);
+
+    std::cout << "total order price: " << md->orderPrice << " total balance " << md->systemTillptr->getBalance() << std::endl;
+
+    if (md->orderPrice > md->systemTillptr->getBalance()) 
 	{
-
-		std::cout << "PRICE EXCEEDS TILL BALANCE" << std::endl;
-	}
+        std::cout << "PRICE EXCEEDS TILL BALANCE" << std::endl;
+    } 
 	else
 	{
-
-		if (md->currentOrder.size() == 0)
+        if (md->currentOrder.size() == 0)
 		{
-			std::cout << "no current order" << std::endl;
-
-			// Get the contents of the text buffer and store in the vector
-			const char* bufferText = md->orderList->text();
-			if (bufferText)
-			{
-				std::string text(bufferText);
-				size_t pos = 0;
-				while ((pos = text.find("\n")) != std::string::npos)
-				{
-					md->currentOrder.push_back(text.substr(0, pos));
-					text.erase(0, pos + 1);
-				}
-				md->currentOrder.push_back(text);  // Add the last line
-			}
-
-			
-			std::string submitedPrice = std::to_string(md->orderPrice);
-			std::string finalPriceMessage = "Checkout: " + submitedPrice;
-			const char* charPass = finalPriceMessage.c_str();
-
-			md->orderList->append(charPass);
-
-			// Print the lines in the vector
-			for (const std::string& line : md->currentOrder)
-			{
-				std::cout << line << std::endl;
-			}
-
-		}
-		else
+            std::cout << "no current order" << std::endl;
+        } 
+		else 
 		{
-			md->previousOrder.push_back(md->currentOrder);
-			md->currentOrder.clear();
-			std::cout << "current order vector cleared" << std::endl;
-			std::cout << "size of the buffer: " << md->currentOrder.size();
-
-
-			// Get the contents of the text buffer and store in the vector
-			const char* bufferText = md->orderList->text();
-			if (bufferText)
-			{
-				std::string text(bufferText);
-				size_t pos = 0;
-				while ((pos = text.find("\n")) != std::string::npos) {
-					md->currentOrder.push_back(text.substr(0, pos));
-					text.erase(0, pos + 1);
-				}
-				md->currentOrder.push_back(text);  // Add the last line
-			}
-			std::string submitedPrice = std::to_string(md->orderPrice);
-			std::string finalPriceMessage = "Checkout: " + submitedPrice;
-			const char* charPass = finalPriceMessage.c_str();
-
-			md->orderList->append(charPass);
-
-			// Print the lines in the vector
-			for (const std::string& line : md->currentOrder)
-			{
-				std::cout << line << std::endl;
-			}
-
-
-		}
-	}
-
-
+            md->previousOrder.push_back(md->currentOrder);
+            md->currentOrder.clear();
+            std::cout << "current order vector cleared" << std::endl;
+            std::cout << "size of the buffer: " << md->currentOrder.size() << std::endl;
+        }
+        updateOrderInfo(md);
+    }
 }
+
+
+
+
 void deleteButtonCallback(Fl_Widget* widget, void* data)
 {
 	//flushes the contents of the current buffer
@@ -918,8 +911,11 @@ void System::posMain(User* currentUser)
 	Fl_Button* employeeMessage =       new Fl_Button(rightoff + boxSize, top + boxSize * 2, boxSize, boxSize, "Daily Message");
 	Fl_Button* logout =                new Fl_Button(rightoff + (boxSize * 2), top + boxSize * 2, boxSize, boxSize, "Logout");
 
+	//Order Number
+	Fl_Box* orderNumber =			   new Fl_Box(1150, top, 580, 50, "Current Order: #1");
+
 	//Order Display
-	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top, 580, 500);
+	Fl_Text_Display* terminalDisplay = new Fl_Text_Display(1150, top + 50, 580, 500);
 	Fl_Text_Buffer* textBuffer =	   new Fl_Text_Buffer();
 
 	//Order Submission
@@ -931,6 +927,7 @@ void System::posMain(User* currentUser)
 
 	//Clock
 	Fl_Clock* clock =				   new Fl_Clock (1350, 750, 200, 150, "Current Time");
+	clock->type(FL_ENGRAVED_FRAME);
 
 	//GUI modifiers
 	terminalDisplay->textfont(FL_COURIER);
@@ -976,9 +973,14 @@ void System::posMain(User* currentUser)
 	managerControl->labelsize(36);
 	logout->labelsize(36);
 
+	submitButton->color(FL_CYAN);
+	deleteButton->color(FL_RED);
+
 	userLabel->type(FL_UP_BOX);
 	userLabel->labeltype(_FL_SHADOW_LABEL);
 	userLabel->color(FL_WHITE);
+
+	md.orderNumber = orderNumber;
 
 	//callbacks
 	newOrder->callback(newOrderCallback, &md);

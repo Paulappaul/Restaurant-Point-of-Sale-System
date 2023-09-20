@@ -33,11 +33,13 @@ public:
 	void setNewUser(User* newUser);
 	std::vector<User*>& getUserlist();
 	std::vector<Food>& getFoodList();
+	std::vector<char*>& getOrder2Free();
 
 private:
 		std::vector<User*> userList;
 	 	std::vector<Food> foodList;
 		std::vector<Beverage> beverageList;
+		std::vector<char*> order2free;
 };
 
 struct UIComp;
