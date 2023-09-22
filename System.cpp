@@ -973,8 +973,9 @@ void System::posMain(User* currentUser)
 	Fl_Box* userLabel =				   new Fl_Box(1300, 900, 300, 100, user);
 
 	//Clock
-	Fl_Clock* clock =				   new Fl_Clock (1350, 750, 200, 150, "Current Time");
+	Fl_Clock* clock =				   new Fl_Clock (1350, 750, 200, 150);
 	clock->type(FL_ENGRAVED_FRAME);
+	clock->color(FL_WHITE);
 
 	//GUI modifiers
 	terminalDisplay->textfont(FL_COURIER);
@@ -1023,9 +1024,16 @@ void System::posMain(User* currentUser)
 	submitButton->color(FL_CYAN);
 	deleteButton->color(FL_RED);
 
+	submitButton->labelsize(20);
+	deleteButton->labelsize(20);
+	submitButton->labeltype(_FL_SHADOW_LABEL);
+
+	orderNumber->labelsize(24);
+
 	userLabel->type(FL_UP_BOX);
 	userLabel->labeltype(_FL_SHADOW_LABEL);
 	userLabel->color(FL_WHITE);
+	userLabel->labelsize(24);
 
 	md.orderNumber = orderNumber;
 
@@ -1042,6 +1050,7 @@ void System::posMain(User* currentUser)
 	submitButton->callback(submitButtonCallback, &md);
 	deleteButton->callback(deleteButtonCallback, &md);
 
+	mainWindow->end();
 	mainWindow->show();
 	Fl::run();
 	
