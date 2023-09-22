@@ -1,4 +1,4 @@
-![pos](Wallpaper\pos.png)
+![pos](Wallpaper/pos.png)
 
 
 CafeControl is a shining example of my proficiency in object-oriented programming and my commitment to safe memory management. Through meticulous design and coding practices, I've ensured that this restaurant Point of Sale (POS) System not only delivers on its functionality but also maintains the highest standards of software quality.
